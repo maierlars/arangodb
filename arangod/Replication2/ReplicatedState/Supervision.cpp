@@ -37,8 +37,7 @@ auto checkStateAdded(replication2::replicated_state::agency::State const& state)
   auto id = state.target.id;
 
   if (!state.plan) {
-    auto participants =
-        arangodb::replication2::agency::LogTarget::Participants{};
+    auto participants = arangodb::replication2::ParticipantsFlagsMap{};
 
     auto statePlan = replication2::replicated_state::agency::Plan{
         .id = state.target.id,
