@@ -100,15 +100,18 @@ void LeaderStateManager<S>::run() {
                                 << "token already gone";
                             return false;
                           }
+                          LOG_DEVEL << "token nonzero";
                           data.state = machine;
                           data.token->snapshot.updateStatus(
                               SnapshotStatus::kCompleted);
+                          LOG_DEVEL << "after update state";
                           data.updateInternalState(
                               LeaderInternalState::kServiceAvailable);
                           data.state->_stream = data.stream;
                           return true;
                         });
 
+                    LOG_DEVEL << "waitForResigned = " << waitForResigned;
                     if (waitForResigned) {
                       self->beginWaitingForParticipantResigned();
                       return result;
@@ -136,6 +139,7 @@ void LeaderStateManager<S>::run() {
       })
       .thenFinal([weak =
                       this->weak_from_this()](futures::Try<Result>&& result) {
+        LOG_DEVEL << "then final called";
         auto self = weak.lock();
         if (self == nullptr) {
           return;
@@ -145,6 +149,7 @@ void LeaderStateManager<S>::run() {
           if (res.is(TRI_ERROR_REPLICATION_REPLICATED_LOG_LEADER_RESIGNED)) {
             return;
           }
+          LOG_DEVEL << "no error";
           TRI_ASSERT(res.ok());
         } catch (std::exception const& e) {
           LOG_CTX("e73bc", FATAL, self->loggerContext)
@@ -226,9 +231,11 @@ auto LeaderStateManager<S>::resign() && noexcept
 
 template<typename S>
 void LeaderStateManager<S>::beginWaitingForParticipantResigned() {
+  LOG_DEVEL << "beginWaitingForParticipantResigned";
   logLeader->waitForResign().thenFinal([weak = this->weak_from_this()](auto&&) {
     if (auto self = weak.lock(); self != nullptr) {
       if (auto parentPtr = self->parent.lock(); parentPtr != nullptr) {
+        LOG_DEVEL << "call forceRebuild on leader";
         parentPtr->forceRebuild();
       }
     }
