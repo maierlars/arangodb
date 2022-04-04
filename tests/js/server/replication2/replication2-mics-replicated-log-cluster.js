@@ -166,28 +166,6 @@ const miscReplicatedLogSuite = function () {
       LH.registerAgencyTestEnd(test);
     },
 
-    testUpdateTargetWithParticipants: function () {
-      const logId = LH.nextUniqueLogId();
-      LH.replicatedLogSetTarget(database, logId, {
-        id: logId,
-        config: targetConfig,
-        supervision: {maxActionsTraceLength: 20},
-      });
-
-      LH.waitFor(function () {
-        const {target} = LH.readReplicatedLogAgency(database, logId);
-        if (target.participants === undefined) {
-          return Error("Target/Participants not yet set");
-        }
-        return true;
-      });
-
-      {
-        const {target} = LH.readReplicatedLogAgency(database, logId);
-        assertEqual(targetConfig.replicationFactor, _.size(target.participants));
-      }
-    },
-
     testReplaceMultipleFollowers: function () {
       const {servers, leader, followers, logId, term} = createReplicatedLogAndWaitForLeader(database);
       const otherServer = _.difference(LH.dbservers, servers);
@@ -203,8 +181,8 @@ const miscReplicatedLogSuite = function () {
       LH.waitFor(LH.replicatedLogParticipantsFlag(database, logId, {
         [followers[0]]: null,
         [followers[1]]: null,
-        [newFollowers[0]]: {excluded: false, forced: false},
-        [newFollowers[1]]: {excluded: false, forced: false},
+        [newFollowers[0]]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
+        [newFollowers[1]]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
       }));
       LH.waitFor(LH.replicatedLogIsReady(database, logId, term, [leader, ...newFollowers], leader));
 
@@ -241,9 +219,9 @@ const miscReplicatedLogSuite = function () {
       LH.waitFor(LH.replicatedLogParticipantsFlag(database, logId, {
         [oldFollower]: null,
         [leader]: null,
-        [newLeader]: {excluded: false, forced: false},
-        [newFollower]: {excluded: false, forced: false},
-        [followers[1]]: {excluded: false, forced: false},
+        [newLeader]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
+        [newFollower]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
+        [followers[1]]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
       }));
       LH.waitFor(LH.replicatedLogIsReady(database, logId, term + 1, [newLeader, newFollower, followers[1]], newLeader));
 
@@ -268,7 +246,7 @@ const miscReplicatedLogSuite = function () {
       const initialNumberOfActions = getSupervisionActionTypes(database, logId).length;
 
       const otherServer = _.difference(LH.dbservers, servers);
-      const [newLeader, ...newFollowers] = _.sampleSize(otherServer, 2);
+      const [newLeader, ...newFollowers] = _.sampleSize(otherServer, 3);
       LH.updateReplicatedLogTarget(database, logId, function (target) {
         delete target.participants[followers[0]];
         delete target.participants[followers[1]];
@@ -283,9 +261,9 @@ const miscReplicatedLogSuite = function () {
         [followers[0]]: null,
         [followers[1]]: null,
         [leader]: null,
-        [newLeader]: {excluded: false, forced: false},
-        [newFollowers[0]]: {excluded: false, forced: false},
-        [newFollowers[1]]: {excluded: false, forced: false},
+        [newLeader]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
+        [newFollowers[0]]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
+        [newFollowers[1]]: {allowedInQuorum: true, allowedAsLeader: true, forced: false},
       }));
       LH.waitFor(LH.replicatedLogIsReady(database, logId, term + 1, otherServer, newLeader));
 
