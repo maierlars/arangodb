@@ -13,6 +13,16 @@
 
 ## C/C++ Libraries
 
+### Abseil - C++ Common Libraries
+
+* Name: abseil-cpp
+* Version: 7f850b3167fb38e6b4a9ce1824e6fabd733b5d62
+* Date: 2022-02-18
+* Project Home: https://abseil.io
+* License: https://raw.githubusercontent.com/abseil/abseil-cpp/master/LICENSE
+* License Name: Apache License 2.0
+* License Id: Apache-2.0
+
 ### Boost
 
 * Name: Boost
@@ -514,8 +524,8 @@ _Enterprise Edition only_
 ### zlib
 
 * Name: zlib
-* Version: 1.2.11
-* Date: 2017-01-15 17:57:23Z
+* Version: 1.2.12
+* Date: 2022-03-27 15:47:03 -0700
 * Project Home: https://github.com/madler/zlib/
 * License: https://raw.githubusercontent.com/madler/zlib/master/README
 * License Comment: free as-is license
@@ -569,6 +579,16 @@ can be found [here](https://github.com/arangodb/arangodb/blob/devel/3rdParty/ire
 * License: https://raw.githubusercontent.com/westes/flex/master/COPYING
 * License Comment: free as-is license (BSD-2-Clause variant),
   only used to generate code, not part of the distribution
+
+### fmt
+
+* Name: fmt
+* Version: 8.1.1
+* Date: 2022-01-06
+* Project Home: https://fmt.dev/
+* License: https://github.com/fmtlib/fmt/blob/master/LICENSE.rst
+* License Name: MIT
+* License Id: MIT
 
 ## Data files
 

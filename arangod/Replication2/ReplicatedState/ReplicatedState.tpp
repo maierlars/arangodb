@@ -123,8 +123,9 @@ auto ReplicatedState<S>::getLeader() const -> std::shared_ptr<LeaderType> {
   if (auto internalState = std::dynamic_pointer_cast<LeaderStateManager<S>>(
           guard->currentManager);
       internalState) {
-    if (internalState->state != nullptr) {
-      return std::static_pointer_cast<LeaderType>(internalState->state);
+    if (auto state = internalState->getImplementationState();
+        state != nullptr) {
+      return std::static_pointer_cast<LeaderType>(state);
     }
   }
   return nullptr;
@@ -153,7 +154,7 @@ void ReplicatedState<S>::forceRebuild() {
 
 template<typename S>
 void ReplicatedState<S>::start(std::unique_ptr<ReplicatedStateToken> token) {
-  auto core = std::make_unique<CoreType>();
+  auto core = factory->constructCore(log->getGlobalLogId());
   auto deferred =
       guardedData.getLockedGuard()->rebuild(std::move(core), std::move(token));
   // execute *after* the lock has been released
@@ -192,13 +193,14 @@ auto ReplicatedState<S>::GuardedData::rebuild(
         << "Replicated log has an unhandled participant type.";
     std::abort();
   }
-} catch (basics::Exception const& ex) {
-  if (ex.code() == TRI_ERROR_REPLICATION_REPLICATED_LOG_PARTICIPANT_GONE) {
-    LOG_CTX("eacb9", TRACE, _self.loggerContext)
-        << "Replicated log participant is gone. Replicated state will go soon "
-           "as well.";
-    return {};
-  }
+} catch (replication2::replicated_log::ParticipantResignedException const& ex) {
+  LOG_CTX("eacb9", TRACE, _self.loggerContext)
+      << "Replicated log participant is gone. Replicated state will go soon "
+         "as well. Error code: "
+      << ex.code();
+  currentManager = nullptr;
+  return {};
+} catch (...) {
   throw;
 }
 

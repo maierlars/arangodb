@@ -79,7 +79,7 @@ void MockLog::setEntry(replication2::LogIndex idx, replication2::LogTerm term,
 MockLog::MockLog(replication2::LogId id) : MockLog(id, {}) {}
 
 MockLog::MockLog(replication2::LogId id, MockLog::storeType storage)
-    : PersistedLog(id), _storage(std::move(storage)) {}
+    : PersistedLog(GlobalLogIdentifier("", id)), _storage(std::move(storage)) {}
 
 AsyncMockLog::AsyncMockLog(replication2::LogId id)
     : MockLog(id), _asyncWorker([this] { this->runWorker(); }) {}
@@ -135,3 +135,25 @@ void AsyncMockLog::runWorker() {
     }
   }
 }
+
+auto DelayedMockLog::insertAsync(
+    std::unique_ptr<replication2::PersistedLogIterator> iter,
+    PersistedLog::WriteOptions const& opts) -> futures::Future<Result> {
+  TRI_ASSERT(!_pending.has_value());
+  return _pending.emplace(std::move(iter), opts).promise.getFuture();
+}
+
+void DelayedMockLog::runAsyncInsert() {
+  TRI_ASSERT(_pending.has_value());
+  MockLog::insertAsync(std::move(_pending->iter), _pending->options)
+      .thenFinal([this](futures::Try<Result>&& res) {
+        auto promise = std::move(_pending->promise);
+        _pending.reset();
+        promise.setTry(std::move(res));
+      });
+}
+
+DelayedMockLog::PendingRequest::PendingRequest(
+    std::unique_ptr<replication2::PersistedLogIterator> iter,
+    WriteOptions options)
+    : iter(std::move(iter)), options(options) {}

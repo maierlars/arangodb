@@ -24,6 +24,7 @@
 #include "ReplicatedLog.h"
 
 #include "Logger/LogContextKeys.h"
+#include "Replication2/Exceptions/ParticipantResignedException.h"
 #include "Replication2/ReplicatedLog/InMemoryLog.h"
 #include "Replication2/ReplicatedLog/LogCore.h"
 #include "Replication2/ReplicatedLog/LogFollower.h"
@@ -51,7 +52,7 @@ replicated_log::ReplicatedLog::ReplicatedLog(
     std::shared_ptr<ReplicatedLogMetrics> const& metrics,
     std::shared_ptr<ReplicatedLogGlobalSettings const> options,
     LoggerContext const& logContext)
-    : _logId(core->logId()),
+    : _logId(core->gid()),
       _logContext(logContext.with<logContextKeyLogId>(core->logId())),
       _participant(std::make_shared<LogUnconfiguredParticipant>(std::move(core),
                                                                 metrics)),
@@ -130,8 +131,8 @@ auto replicated_log::ReplicatedLog::getParticipant() const
     -> std::shared_ptr<ILogParticipant> {
   std::unique_lock guard(_mutex);
   if (_participant == nullptr) {
-    THROW_ARANGO_EXCEPTION(
-        TRI_ERROR_REPLICATION_REPLICATED_LOG_PARTICIPANT_GONE);
+    throw replicated_log::ParticipantResignedException(
+        TRI_ERROR_REPLICATION_REPLICATED_LOG_PARTICIPANT_GONE, ADB_HERE);
   }
 
   return _participant;
@@ -172,5 +173,10 @@ auto replicated_log::ReplicatedLog::drop() -> std::unique_ptr<LogCore> {
 }
 
 auto replicated_log::ReplicatedLog::getId() const noexcept -> LogId {
+  return _logId.id;
+}
+
+auto replicated_log::ReplicatedLog::getGlobalLogId() const noexcept
+    -> GlobalLogIdentifier const& {
   return _logId;
 }

@@ -25,7 +25,7 @@
 const internal = require("internal");
 const {wait} = internal;
 const _ = require("lodash");
-const jsunity = require("../../../../common/modules/jsunity");
+const jsunity = require("jsunity");
 const {assertTrue} = jsunity.jsUnity.assertions;
 const request = require('@arangodb/request');
 const arangodb = require('@arangodb');
@@ -73,7 +73,7 @@ const getServerRebootId = function (serverId) {
 
 const getParticipantsObjectForServers = function (servers) {
   return _.reduce(servers, (a, v) => {
-    a[v] = {excluded: false, forced: false};
+    a[v] = {allowedInQuorum: true, allowedAsLeader: true, forced: false};
     return a;
   }, {});
 };
@@ -108,6 +108,38 @@ const coordinators = (function () {
 }());
 
 
+/**
+ * @param {string} database
+ * @param {string} logId
+ * @returns {{
+ *       target: {
+ *         id: number,
+ *         leader?: string,
+ *         participants: Object<string, {
+ *           forced: boolean,
+ *           allowedInQuorum: boolean,
+ *           allowedAsLeader: boolean
+ *         }>,
+ *         config: {
+ *           writeConcern: number,
+ *           softWriteConern: number,
+ *           replicationFactor: number,
+ *           waitForSync: boolean
+ *         },
+ *         properties: {}
+ *       },
+ *       plan: {
+ *         id: number,
+ *         participantsConfig: Object,
+ *         currentTerm?: Object
+ *       },
+ *       current: {
+ *         localState: Object,
+ *         supervision?: Object,
+ *         leader?: Object
+ *       }
+ *   }}
+ */
 const readReplicatedLogAgency = function (database, logId) {
   let target = readAgencyValueAt(`Target/ReplicatedLogs/${database}/${logId}`);
   let plan = readAgencyValueAt(`Plan/ReplicatedLogs/${database}/${logId}`);
@@ -159,7 +191,6 @@ const replicatedLogSetPlanTerm = function (database, logId, term) {
 };
 
 const replicatedLogSetPlan = function (database, logId, spec) {
-  assertTrue(spec.targetConfig.replicationFactor <= Object.keys(spec.participantsConfig.participants).length);
   global.ArangoAgency.set(`Plan/ReplicatedLogs/${database}/${logId}`, spec);
   global.ArangoAgency.increaseVersion(`Plan/Version`);
 };
@@ -446,6 +477,10 @@ const getReplicatedLogLeaderPlan = function (database, logId) {
   return {leader, term};
 };
 
+const getReplicatedLogLeaderTarget = function (database, logId) {
+  let {target} = readReplicatedLogAgency(database, logId);
+  return target.leader;
+};
 
 const createReplicatedLog = function (database, targetConfig) {
   const logId = nextUniqueLogId();
@@ -462,6 +497,26 @@ const createReplicatedLog = function (database, targetConfig) {
   const {leader, term} = getReplicatedLogLeaderPlan(database, logId);
   const followers = _.difference(servers, [leader]);
   return {logId, servers, leader, term, followers};
+};
+
+const replicatedLogTargetVersion = function(database, logId, version) {
+  return function() {
+    let {current} = readReplicatedLogAgency(database, logId);
+
+    if (current === undefined) {
+      return Error(`current not yet defined`);
+    }
+    if (!current.supervision) {
+      return Error(`supervision not yet reported to current`);
+    }
+    if (!current.supervision.targetVersion) {
+      return Error(`no version reported in current by supervision`);
+    }
+    if (current.supervision.targetVersion !== version) {
+      return Error(`found version ${current.supervison.targetVersion}, expected ${version}`);
+    }
+    return true;
+  };
 };
 
 exports.waitFor = waitFor;
@@ -496,7 +551,9 @@ exports.waitForReplicatedLogAvailable = waitForReplicatedLogAvailable;
 exports.replicatedLogParticipantsFlag = replicatedLogParticipantsFlag;
 exports.updateReplicatedLogTarget = updateReplicatedLogTarget;
 exports.getReplicatedLogLeaderPlan = getReplicatedLogLeaderPlan;
+exports.getReplicatedLogLeaderTarget = getReplicatedLogLeaderTarget;
 exports.createReplicatedLog = createReplicatedLog;
 exports.checkRequestResult = checkRequestResult;
 exports.getServerUrl = getServerUrl;
 exports.getServerHealth = getServerHealth;
+exports.replicatedLogTargetVersion = replicatedLogTargetVersion;
