@@ -28,7 +28,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake ..
+            cmake .. -DUSE_MAINTAINER_MODE=On -DCMAKE_LIBRARY_PATH=/opt/openssl-1.1.1/lib -DOPENSSL_ROOT_DIR=/opt/openssl-1.1.1
       - run:
           name: Build
           command: |
