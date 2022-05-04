@@ -7,12 +7,13 @@ jobs:
     steps:
       - restore_cache:
             keys:
-              - source-v1-{{ .Branch }}-{{ .Revision }}
-              - source-v1-{{ .Branch }}-
+              - source-v1-{{ .Branch }}
+              - source-v1-{{ .Branch }}
               - source-v1-
       - checkout
       - save_cache:
-          key: source-v1-{{ .Branch }}-{{ .Revision }}
+          name: git cache
+          key: source-v1-{{ .Branch }}
           paths:
             - ".git"
       - restore_cache:
@@ -32,6 +33,7 @@ jobs:
       - run:
           name: Build
           command: |
+            cd build
             cmake --build . -- -j $(nproc)
       - store_artifacts:
           path: build/bin
