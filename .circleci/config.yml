@@ -58,7 +58,7 @@ jobs:
             - etc/
             - tests/js
             - utils
-            - UnitTest
+            - UnitTests
 
   replication-two-gtest:
     docker:
@@ -68,11 +68,21 @@ jobs:
       - attach_workspace:
           at: .
       - run:
+          name: Enabled coredumps
+          command: ulimit -c unlimited
+      - run:
           name: Run GTest
           command: |
             build/bin/arangodbtests_replication2 --gtest_output=xml
+      - run:
+          command: |
+            mkdir -p /tmp/core_dumps
+            cp core.* /tmp/core_dumps
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/core_dumps
       - store_test_results:
-          path: test-details.xml
+          path: test-detail.xml
 
   replication-two-server-tests:
     machine:
@@ -82,12 +92,22 @@ jobs:
       - attach_workspace:
           at: .
       - run:
-          name: Run GTest
+          name: Enabled coredumps
+          command: ulimit -c unlimited
+      - run:
+          name: Run replication2_server suite
           command: |
             scripts/unittest replication2_server --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true
       - store_artifacts:
           destination: replication2_server
           path: out/*
+      - run:
+          command: |
+            mkdir -p /tmp/core_dumps
+            cp core.* /tmp/core_dumps
+          when: on_fail
+      - store_artifacts:
+          path: /tmp/core_dumps
       - store_artifacts:
           destination: replication2_server
           path: /tmp/*
