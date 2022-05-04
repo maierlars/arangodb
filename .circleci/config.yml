@@ -5,27 +5,26 @@ jobs:
     machine:
       image: ubuntu-2004:202201-02
     resource_class: large
+    environment:
+      SCCACHE_BUCKET:
+      # AWS_ACCESS_KEY_ID: bar
+      # AWS_SECRET_ACCESS_KEY: baz
     steps:
       - run:
           name: Install required software
           command: |
             sudo apt-get update
-            sudo apt-get install libssl-dev gcc-10 g++-10
-      - restore_cache:
-            keys:
-              - source-v1-{{ .Branch }}
-              - source-v1-
+            sudo apt-get install libssl-dev gcc-10 g++-10 snapd ccache flex bison
+            sudo snap install sccache --candidate --classic
       - checkout
-      - save_cache:
-          name: git cache
-          key: source-v1-{{ .Branch }}
-          paths:
-            - ".git"
       - restore_cache:
           keys:
-            - cmake-v1-{{ .Branch }}-{{ .Revision }}
-            - cmake-v1-{{ .Branch }}-
-            - cmake-v1-
+            - ccache-v1-{{ .Branch }}-{{ .Revision }}
+            - ccache-v1-{{ .Branch }}-
+            - ccache-v1-
+      - run:
+          name: Zero CCache Statistics
+          command: ccache -z
       - run:
           name: Create build directories
           command: |
@@ -34,18 +33,21 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10
+            cmake .. -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=sccache -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10
       - run:
           name: Build
           command: |
             cd build
             cmake --build . -- -j $(nproc)
+      - run:
+          name: CCache Statistics
+          command: ccache -s
       - store_artifacts:
           path: build/bin
       - save_cache:
-          key: cmake-v1-{{ .Branch }}-{{ .Revision }}
+          key: ccache-v1-{{ .Branch }}-{{ .Revision }}
           paths:
-            - build
+            - /home/circleci/.cache/ccache
 
 workflows:
   compile-linux-community:
