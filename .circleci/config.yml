@@ -28,13 +28,13 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/bin/gcc-10 -DCMAKE_CXX_COMPILER=/usr/bin/g++-10
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc-10 -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++-10
       # -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - run:
           name: Build
           command: |
             cd build
-            cmake --build . --target arangodbtests_replication2 -- -j $(nproc)
+            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangodrestore -- -j $(nproc)
       - run:
           name: CCache Statistics
           command: ccache -s
