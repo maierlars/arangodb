@@ -127,17 +127,20 @@ workflows:
     jobs:
       - compile-linux-community
       - replication-two-gtest:
+          name: replication2 gtest
           requires:
             - compile-linux-community
       - testing-js-run-test-suite:
+          name: replication2 server - << matrix.bucketIndex >>
           matrix:
             parameters:
               bucketIndex: [0, 1, 2]
-          suite: replication2_client
+          suite: replication2_server
           bucketCount: 3
           requires:
             - compile-linux-community
       - testing-js-run-test-suite:
-          suite: replication2_server
+          name: replication2 client
+          suite: replication2_client
           requires:
             - compile-linux-community
