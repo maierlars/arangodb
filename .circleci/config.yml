@@ -11,7 +11,11 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install libssl-dev gcc-10 g++-10 snapd ccache flex bison
-      - checkout
+      - run:
+          name: Checkout Source
+          command: |
+            cd ..
+            git clone --no-tags --depth 1 "$CIRCLE_REPOSITORY_URL" --branch "$CIRCLE_BRANCH" project
       - restore_cache:
           keys:
             - ccache-v1-{{ .Branch }}-{{ .Revision }}
@@ -34,7 +38,7 @@ jobs:
           name: Build
           command: |
             cd build
-            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangodrestore -- -j $(nproc)
+            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore -- -j $(nproc)
       - run:
           name: CCache Statistics
           command: ccache -s
@@ -56,8 +60,8 @@ jobs:
             - UnitTest
 
   replication-two-gtest:
-    machine:
-      image: ubuntu-2004:202201-02
+    docker:
+      - image: cimg/base
     resource_class: small
     steps:
       - attach_workspace:
