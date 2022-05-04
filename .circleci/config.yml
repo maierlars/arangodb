@@ -55,13 +55,14 @@ jobs:
             - build/bin
             - scripts/
             - js/
+            - etc/
             - tests/js
             - utils
             - UnitTest
 
   replication-two-gtest:
     docker:
-      - image: cimg/base
+      - image: cimg/base:stable
     resource_class: small
     steps:
       - attach_workspace:
