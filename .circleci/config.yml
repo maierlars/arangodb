@@ -2,10 +2,15 @@ version: 2.1
 
 jobs:
   compile-linux-community:
-    docker:
-      - image: arangodb/ubuntubuildarangodb5-x86_64:latest
-    resource_class: xlarge
+    machine:
+      image: ubuntu-2004:202201-02
+    resource_class: large
     steps:
+      - run:
+          name: Install required software
+          command: |
+            - sudo apt-get update
+            - sudo apt-get install libssl-dev
       - restore_cache:
             keys:
               - source-v1-{{ .Branch }}
@@ -30,7 +35,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_MAINTAINER_MODE=On -DCMAKE_LIBRARY_PATH=/opt/openssl-1.1.1/lib -DOPENSSL_ROOT_DIR=/opt/openssl-1.1.1
+            cmake .. -DUSE_MAINTAINER_MODE=On
       - run:
           name: Build
           command: |
