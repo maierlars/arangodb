@@ -10,10 +10,9 @@ jobs:
           name: Install required software
           command: |
             sudo apt-get update
-            sudo apt-get install libssl-dev
+            sudo apt-get install libssl-dev gcc-10 g++-10
       - restore_cache:
             keys:
-              - source-v1-{{ .Branch }}
               - source-v1-{{ .Branch }}
               - source-v1-
       - checkout
@@ -35,7 +34,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_MAINTAINER_MODE=On
+            cmake .. -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=gcc-10 -DCMAKE_CXX_COMPILER=g++-10
       - run:
           name: Build
           command: |
