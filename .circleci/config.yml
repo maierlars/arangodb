@@ -38,7 +38,7 @@ jobs:
           name: Build
           command: |
             cd build
-            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore arangoimport -- -j $(nproc)
+            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore arangoimport arangoexport -- -j $(nproc)
       - run:
           name: CCache Statistics
           command: ccache -s
@@ -84,7 +84,10 @@ jobs:
       - store_test_results:
           path: test_detail.xml
 
-  replication-two-server-tests:
+  testing-js-run-test-suite:
+    parameters:
+      suite:
+        type: string
     machine:
       image: ubuntu-2004:202201-02
     resource_class: medium
@@ -95,11 +98,11 @@ jobs:
           name: Enabled coredumps
           command: ulimit -c unlimited
       - run:
-          name: Run replication2_server suite
+          name: Run << parameters.suite >> suite
           command: |
-            scripts/unittest replication2_server --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true
+            scripts/unittest << parameters.suite >> --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true
       - store_artifacts:
-          destination: replication2_server
+          destination: << parameters.suite >>
           path: out/*
       - run:
           command: |
@@ -109,7 +112,7 @@ jobs:
       - store_artifacts:
           path: /tmp/core_dumps
       - store_artifacts:
-          destination: replication2_server
+          destination: << parameters.suite >>
           path: /tmp/*
 
 
@@ -120,6 +123,11 @@ workflows:
       - replication-two-gtest:
           requires:
             - compile-linux-community
-      - replication-two-server-tests:
+      - testing-js-run-test-suite:
+          suite: replication2_client
+          requires:
+            - compile-linux-community
+      - testing-js-run-test-suite:
+          suite: replication2_server
           requires:
             - compile-linux-community
