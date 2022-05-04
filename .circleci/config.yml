@@ -5,10 +5,6 @@ jobs:
     machine:
       image: ubuntu-2004:202201-02
     resource_class: large
-    environment:
-      SCCACHE_BUCKET:
-      # AWS_ACCESS_KEY_ID: bar
-      # AWS_SECRET_ACCESS_KEY: baz
     steps:
       - run:
           name: Install required software
@@ -58,7 +54,7 @@ jobs:
             - utils
             - UnitTest
 
-  replication-2.0-gtest:
+  replication-two-gtest:
     machine:
       image: ubuntu-2004:202201-02
     resource_class: small
@@ -74,9 +70,9 @@ jobs:
 
 
 workflows:
-  replication-2.0-pr:
+  replication-two-pr:
     jobs:
       - compile-linux-community
-      - replication-2.0-gtest:
+      - replication-two-gtest:
           requires:
             - compile-linux-community
