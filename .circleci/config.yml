@@ -38,7 +38,7 @@ jobs:
           name: Build
           command: |
             cd build
-            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore -- -j $(nproc)
+            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore arangoimport -- -j $(nproc)
       - run:
           name: CCache Statistics
           command: ccache -s
@@ -82,7 +82,7 @@ jobs:
       - store_artifacts:
           path: /tmp/core_dumps
       - store_test_results:
-          path: test-detail.xml
+          path: test_detail.xml
 
   replication-two-server-tests:
     machine:
