@@ -4,6 +4,7 @@ jobs:
   compile-linux-community:
     docker:
       - image: arangodb/ubuntubuildarangodb5-x86_64:latest
+    resource_class: xlarge
     steps:
       - restore_cache:
             keys:
