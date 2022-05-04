@@ -41,6 +41,7 @@ jobs:
       - store_artifacts:
           path: build/bin
       - save_cache:
+          when: always
           key: ccache-v1-{{ .Branch }}-{{ .Revision }}
           paths:
             - /home/circleci/.ccache
@@ -64,9 +65,27 @@ jobs:
       - run:
           name: Run GTest
           command: |
-            build/bin/arangodbtests_replication2 > gtest-output.txt
+            build/bin/arangodbtests_replication2 --gtest_output=xml
       - store_test_results:
-          path: gtest-output.txt
+          path: test-details.xml
+
+  replication-two-server-tests:
+    machine:
+      image: ubuntu-2004:202201-02
+    resource_class: medium
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Run GTest
+          command: |
+            scripts/unittest replication2_server --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true
+      - store_artifacts:
+          destination: replication2_server
+          path: out/*
+      - store_artifacts:
+          destination: replication2_server
+          path: /tmp/*
 
 
 workflows:
@@ -74,5 +93,8 @@ workflows:
     jobs:
       - compile-linux-community
       - replication-two-gtest:
+          requires:
+            - compile-linux-community
+      - replication-two-server-tests:
           requires:
             - compile-linux-community
