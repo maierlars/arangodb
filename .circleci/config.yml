@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   compile-linux-community:
     docker:
-      - image: arangodb/ubuntubuildarangodb3-x86_64:latest
+      - image: arangodb/ubuntubuildarangodb5-x86_64:latest
     steps:
       - restore_cache:
             keys:
