@@ -38,7 +38,7 @@ jobs:
           name: Build
           command: |
             cd build
-            cmake --build . --target arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore arangoimport arangoexport -- -j $(nproc)
+            make -j $(nproc) arangodbtests_replication2 arangod arangosh arangobench arangodump arangorestore arangoimport arangoexport
       - run:
           name: CCache Statistics
           command: ccache -s
@@ -88,6 +88,12 @@ jobs:
     parameters:
       suite:
         type: string
+      bucketCount:
+        type: integer
+        default: 1
+      bucketIndex:
+        type: integer
+        default: 0
     machine:
       image: ubuntu-2004:202201-02
     resource_class: medium
@@ -100,7 +106,7 @@ jobs:
       - run:
           name: Run << parameters.suite >> suite
           command: |
-            scripts/unittest << parameters.suite >> --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true
+            scripts/unittest << parameters.suite >> --cluster true --cleanup false --writeXmlReport true --dumpAgencyOnError true --testBuckets << parameters.bucketCount >>/<< parameters.bucketIndex >>
       - store_artifacts:
           destination: << parameters.suite >>
           path: out/*
@@ -124,7 +130,11 @@ workflows:
           requires:
             - compile-linux-community
       - testing-js-run-test-suite:
+          matrix:
+            parameters:
+              bucketIndex: [0, 1, 2]
           suite: replication2_client
+          bucketCount: 3
           requires:
             - compile-linux-community
       - testing-js-run-test-suite:
