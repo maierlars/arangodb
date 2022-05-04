@@ -48,7 +48,7 @@ jobs:
       - save_cache:
           key: ccache-v1-{{ .Branch }}-{{ .Revision }}
           paths:
-            - /home/circleci/.cache/ccache
+            - /home/circleci/.ccache
 
 workflows:
   compile-linux-community:
