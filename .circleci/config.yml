@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  win: circleci/windows@4.1
+
 jobs:
   compile-linux-community:
     machine:
@@ -43,7 +46,7 @@ jobs:
           name: CCache Statistics
           command: ccache -s
       - store_artifacts:
-          path: build/bin
+          path: build/bin/arango*
       - save_cache:
           when: always
           key: ccache-v1-{{ .Branch }}-{{ .Revision }}
@@ -60,7 +63,48 @@ jobs:
             - utils
             - UnitTests
 
-  replication-two-gtest:
+  compile-windows-community:
+    executor:
+      name: win/default
+      size: "large"
+      shell: bash.exe
+    steps:
+      - run:
+          name: Checkout Source
+          command: |
+            cd ..
+            git clone --no-tags --depth 1 "$CIRCLE_REPOSITORY_URL" --branch "$CIRCLE_BRANCH" project
+      - run:
+          name: Create build directories
+          command: |
+            mkdir -p build
+      - run:
+          name: Configure
+          command: |
+            cd build
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On \
+              -DUSE_MAINTAINER_MODE=On
+      - run:
+          name: Build
+          command: |
+            cmake --build build --target arangodump
+      - store_artifacts:
+          path: build/bin/Debug/arango*
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/bin
+            - scripts/
+            - js/
+            - etc/
+            - tests/js
+            - utils
+            - UnitTests
+
+  run-gtest-executable-linux:
+    parameters:
+      executable:
+        type: string
     docker:
       - image: cimg/base:stable
     resource_class: small
@@ -73,7 +117,7 @@ jobs:
       - run:
           name: Run GTest
           command: |
-            build/bin/arangodbtests_replication2 --gtest_output=xml
+            << parameters.executable >> --gtest_output=xml
       - run:
           command: |
             mkdir -p /tmp/core_dumps
@@ -81,6 +125,23 @@ jobs:
           when: on_fail
       - store_artifacts:
           path: /tmp/core_dumps
+      - store_test_results:
+          path: test_detail.xml
+
+  run-gtest-executable-windows:
+    parameters:
+      executable:
+        type: string
+    docker:
+      - image: cimg/base:stable
+    resource_class: small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Run GTest
+          command: |
+            << parameters.executable >> --gtest_output=xml
       - store_test_results:
           path: test_detail.xml
 
@@ -126,10 +187,17 @@ workflows:
   replication-two-pr:
     jobs:
       - compile-linux-community
-      - replication-two-gtest:
-          name: replication2 gtest
+      - compile-windows-community
+      - run-gtest-executable-linux:
+          name: replication2 gtest linux
+            executable: build/bin/arangodbtests_replication2
+            requires:
+              - compile-linux-community
+      - run-gtest-executable-windows:
+          name: replication2-gtest-windows
+          executable: build/bin/Debug/arangodbtests_replication2
           requires:
-            - compile-linux-community
+            - compile-windows-community
       - testing-js-run-test-suite:
           name: replication2 server - << matrix.bucketIndex >>
           matrix:
