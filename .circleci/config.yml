@@ -37,8 +37,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc-10 -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++-10
-      # -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/gcc-10 -DCMAKE_CXX_COMPILER=/usr/lib/ccache/g++-10 -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache
       - run:
           name: Build
           command: |
@@ -75,7 +74,7 @@ jobs:
       - run:
           name: Install required software
           command: |
-            brew install llvm ccache cmake
+            brew install llvm ccache cmake openssl@1.1
       - run:
           name: Checkout Source
           command: |
