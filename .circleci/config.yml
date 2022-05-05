@@ -8,6 +8,8 @@ jobs:
     machine:
       image: ubuntu-2004:202201-02
     resource_class: large
+    environment:
+      GIT_SSH_COMMAND: ssh -v
     steps:
       - run:
           name: Install required software
@@ -68,7 +70,13 @@ jobs:
       name: win/default
       size: "large"
       shell: bash.exe
+    environment:
+      GIT_SSH_COMMAND: ssh -v
     steps:
+      - run:
+          name: Install required software
+          command: |
+            choco install cmake -y
       - checkout
       - run:
           name: Create build directories
