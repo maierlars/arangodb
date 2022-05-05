@@ -65,6 +65,65 @@ jobs:
             - utils
             - UnitTests
 
+  compile-macos-llvm-community:
+    macos:
+      xcode: "12.5.1"
+    resource_class: medium
+    environment:
+      GIT_SSH_COMMAND: ssh -v
+    steps:
+      - run:
+          name: Install required software
+          command: |
+            sudo brew install llvm ccache
+      - run:
+          name: Checkout Source
+          command: |
+            cd ..
+            git clone --no-tags --depth 1 "$CIRCLE_REPOSITORY_URL" --branch "$CIRCLE_BRANCH" project
+      - restore_cache:
+          keys:
+            - ccache-mac-v1-{{ .Branch }}-{{ .Revision }}
+            - ccache-mac-v1-{{ .Branch }}-
+            - ccache-mac-v1-
+      - run:
+          name: Zero CCache Statistics
+          command: ccache -z
+      - run:
+          name: Create build directories
+          command: |
+            mkdir -p build
+      - run:
+          name: Configure
+          command: |
+            cd build
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/clang -DCMAKE_CXX_COMPILER=/usr/lib/ccache/clang++
+      - run:
+          name: Build
+          command: |
+            cd build
+            make -j $(nproc) arangodump
+      - run:
+          name: CCache Statistics
+          command: ccache -s
+      - store_artifacts:
+          path: build/bin/arango*
+      - save_cache:
+          when: always
+          key: ccache-mac-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - /home/circleci/.ccache
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/bin
+            - scripts/
+            - js/
+            - etc/
+            - tests/js
+            - utils
+            - UnitTests
+
   compile-windows-community:
     executor:
       name: win/default
@@ -197,7 +256,8 @@ jobs:
 workflows:
   replication-two-pr:
     jobs:
-      - compile-linux-community
+      #- compile-linux-community
+      - compile-macos-llvm-community
       - compile-windows-community
       - run-gtest-executable-linux:
           name: replication2 gtest linux
@@ -209,17 +269,22 @@ workflows:
           executable: 'build/bin/Debug/arangodbtests_replication2'
           requires:
             - compile-windows-community
-      - testing-js-run-test-suite:
-          name: replication2 server - << matrix.bucketIndex >>
-          matrix:
-            parameters:
-              bucketIndex: [0, 1, 2]
-          suite: replication2_server
-          bucketCount: 3
+      - run-gtest-executable-macos-llvm:
+          name: replication2-gtest-mac
+          executable: 'build/bin/arangodbtests_replication2'
           requires:
-            - compile-linux-community
-      - testing-js-run-test-suite:
-          name: replication2 client
-          suite: replication2_client
-          requires:
-            - compile-linux-community
+            - compile-macos-llvm-community
+      #- testing-js-run-test-suite:
+      #    name: replication2 server - << matrix.bucketIndex >>
+      #    matrix:
+      #      parameters:
+      #        bucketIndex: [0, 1, 2]
+      #    suite: replication2_server
+      #    bucketCount: 3
+      #    requires:
+      #      - compile-linux-community
+      #- testing-js-run-test-suite:
+      #    name: replication2 client
+      #    suite: replication2_client
+      #    requires:
+      #      - compile-linux-community
