@@ -93,18 +93,19 @@ jobs:
           command: |
             mkdir -p build
             cd ..
-            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang $@' > ccache-clang-wrapper.sh
-            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ $@' > ccache-clang++-wrapper.sh
+            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
+            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
       - run:
           name: Configure
           command: >
-            cd build ; cmake ..
-              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
-              -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On
-              -DUSE_MAINTAINER_MODE=On
-              -DCMAKE_C_COMPILER=/Users/distiller/ccache-clang-wrapper.sh
-              -DCMAKE_CXX_COMPILER=/Users/distiller/ccache-clang++-wrapper.sh
-              -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+            cd build ; cmake .. \
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
+              -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On \
+              -DUSE_MAINTAINER_MODE=On \
+              -DCMAKE_C_COMPILER=/usr/lib/ccache/clang-13 \
+              -DCMAKE_CXX_COMPILER=/usr/lib/ccache/clang++-13 \
+              -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
+          #  /Users/distiller/ccache-clang-wrapper.sh
       - run:
           name: Build
           command: |
