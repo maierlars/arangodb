@@ -92,16 +92,30 @@ jobs:
           name: Create build directories
           command: |
             mkdir -p build
+            cd ..
+            cat <<EOF > ccache-clang-wrapper.sh
+              #!/bin/bash
+              ccache /usr/local/opt/llvm/bin/clang $@
+            EOF
+            cat <<EOF > ccache-clang++-wrapper.sh
+              #!/bin/bash
+              ccache /usr/local/opt/llvm/bin/clang++ $@
+            EOF
       - run:
           name: Configure
-          command: |
-            cd build
-            cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DCMAKE_C_COMPILER_LAUNCHER=ccache -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
+          command: >
+            cd build ; cmake ..
+              -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+              -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On
+              -DUSE_MAINTAINER_MODE=On
+              -DCMAKE_C_COMPILER=/Users/distiller/ccache-clang-wrapper.sh
+              -DCMAKE_CXX_COMPILER=/Users/distiller/ccache-clang++-wrapper.sh
+              -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl
       - run:
           name: Build
           command: |
             cd build
-            make -j $(nproc) arangodump
+            make -j $(nproc) velocypack
       - run:
           name: CCache Statistics
           command: ccache -s
@@ -111,7 +125,7 @@ jobs:
           when: always
           key: ccache-mac-v1-{{ .Branch }}-{{ .Revision }}
           paths:
-            - /home/circleci/.ccache
+            - /Users/distiller/.ccache
       - persist_to_workspace:
           root: .
           paths:
