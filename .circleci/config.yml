@@ -93,14 +93,8 @@ jobs:
           command: |
             mkdir -p build
             cd ..
-            cat <<EOF > ccache-clang-wrapper.sh
-              #!/bin/bash
-              ccache /usr/local/opt/llvm/bin/clang $@
-            EOF
-            cat <<EOF > ccache-clang++-wrapper.sh
-              #!/bin/bash
-              ccache /usr/local/opt/llvm/bin/clang++ $@
-            EOF
+            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang $@' > ccache-clang-wrapper.sh
+            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ $@' > ccache-clang++-wrapper.sh
       - run:
           name: Configure
           command: >
