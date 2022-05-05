@@ -95,6 +95,7 @@ jobs:
             mkdir -p build
             cd ..
             mkdir -p symlinks
+            cd symlinks
             ln -s /usr/local/opt/ccache/libexec/clang clang-13
             ln -s /usr/local/opt/ccache/libexec/clang++ clang++-13
             echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
