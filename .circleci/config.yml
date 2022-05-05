@@ -269,7 +269,7 @@ workflows:
           executable: 'build/bin/Debug/arangodbtests_replication2'
           requires:
             - compile-windows-community
-      - run-gtest-executable-macos-llvm:
+      - run-gtest-executable-linux:
           name: replication2-gtest-mac
           executable: 'build/bin/arangodbtests_replication2'
           requires:
