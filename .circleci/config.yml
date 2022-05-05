@@ -72,11 +72,12 @@ jobs:
       shell: bash.exe
     environment:
       GIT_SSH_COMMAND: ssh -v
+      PATH: $PATH:C:\Program Files\CMake\bin
     steps:
       - run:
           name: Install required software
           command: |
-            choco install cmake -y
+            choco install cmake bison flex -y
       - checkout
       - run:
           name: Create build directories
