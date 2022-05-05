@@ -69,11 +69,7 @@ jobs:
       size: "large"
       shell: bash.exe
     steps:
-      - run:
-          name: Checkout Source
-          command: |
-            cd ..
-            git clone --no-tags --depth 1 "$CIRCLE_REPOSITORY_URL" --branch "$CIRCLE_BRANCH" project
+      - checkout
       - run:
           name: Create build directories
           command: |
