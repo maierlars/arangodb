@@ -97,6 +97,7 @@ jobs:
             echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
             echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
             chmod u+x ccache-clang-wrapper.sh ccache-clang++-wrapper.sh
+            echo $PATH
       - run:
           name: Configure
           command: >
