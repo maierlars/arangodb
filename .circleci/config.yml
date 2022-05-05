@@ -69,7 +69,6 @@ jobs:
     executor:
       name: win/default
       size: "large"
-      shell: bash.exe
     environment:
       GIT_SSH_COMMAND: ssh -v
     steps:
@@ -78,11 +77,15 @@ jobs:
           command: |
             choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
             choco install winflexbison3 -y
-      - checkout
+      - run:
+          name: Checkout Source
+          command: |
+            cd ..
+            git clone --no-tags --depth 1 "$Env:CIRCLE_REPOSITORY_URL" --branch "$Env:CIRCLE_BRANCH" project
       - run:
           name: Create build directories
           command: |
-            mkdir -p build
+            md build
       - run:
           name: Configure
           command: |
