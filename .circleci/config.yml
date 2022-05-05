@@ -77,14 +77,15 @@ jobs:
           command: |
             choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
           # choco install winflexbison3 -y
-      - add_ssh_keys:
-          fingerprints:
-            - "94:d7:e4:7c:73:20:4c:5a:26:dc:d0:0b:ae:f5:38:c6"
-      - run:
-          name: Checkout Source
-          command: |
-            cd ..
-            git clone --no-tags --depth 1 "$Env:CIRCLE_REPOSITORY_URL" --branch "$Env:CIRCLE_BRANCH" project
+      #- add_ssh_keys:
+      #    fingerprints:
+      #      - "94:d7:e4:7c:73:20:4c:5a:26:dc:d0:0b:ae:f5:38:c6"
+      #- run:
+      #    name: Checkout Source
+      #    command: |
+      #      cd ..
+      #      git clone --no-tags --depth 1 "$Env:CIRCLE_REPOSITORY_URL" --branch "$Env:CIRCLE_BRANCH" project
+      - checkout
       - run:
           name: Create build directories
           command: |
