@@ -77,11 +77,7 @@ jobs:
           command: |
             choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
             choco install winflexbison3 -y
-      - run:
-          name: Checkout Source
-          command: |
-            cd ..
-            git clone --no-tags --depth 1 "$Env:CIRCLE_REPOSITORY_URL" --branch "$Env:CIRCLE_BRANCH" project
+      - checkout
       - run:
           name: Create build directories
           command: |
