@@ -70,14 +70,18 @@ jobs:
       name: win/default
       size: "large"
     environment:
-      GIT_SSH_COMMAND: ssh -v
+      GIT_SSH_COMMAND: ssh -v -oBatchMode=yes
     steps:
       - run:
           name: Install required software
           command: |
             choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
-            choco install winflexbison3 -y
-      - checkout
+          # choco install winflexbison3 -y
+      - run:
+          name: Checkout Source
+          command: |
+            cd ..
+            git clone --no-tags --depth 1 "$Env:CIRCLE_REPOSITORY_URL" --branch "$Env:CIRCLE_BRANCH" project
       - run:
           name: Create build directories
           command: |
@@ -86,8 +90,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On \
-              -DUSE_MAINTAINER_MODE=On
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On
       - run:
           name: Build
           command: |
