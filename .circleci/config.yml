@@ -97,7 +97,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/clang -DCMAKE_CXX_COMPILER=/usr/lib/ccache/clang++
+            cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_C_COMPILER=/usr/lib/ccache/clang -DCMAKE_CXX_COMPILER=/usr/lib/ccache/clang++
       - run:
           name: Build
           command: |
@@ -153,7 +153,7 @@ jobs:
           name: Configure
           command: |
             cd build
-            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9
+            cmake .. -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On -DUSE_MAINTAINER_MODE=On
       - run:
           name: Build
           command: |
