@@ -70,7 +70,7 @@ jobs:
     resource_class: medium
     environment:
       GIT_SSH_COMMAND: ssh -v
-      PATH: /usr/local/opt/llvm/bin:$PATH
+      PATH: /Users/distiller/symlinks
     steps:
       - run:
           name: Install required software
@@ -94,6 +94,9 @@ jobs:
           command: |
             mkdir -p build
             cd ..
+            mkdir -p symlinks
+            ln -s /usr/local/opt/ccache/libexec/clang clang-13
+            ln -s /usr/local/opt/ccache/libexec/clang++ clang++-13
             echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
             echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
             chmod u+x ccache-clang-wrapper.sh ccache-clang++-wrapper.sh
@@ -105,8 +108,8 @@ jobs:
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
               -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On \
               -DUSE_MAINTAINER_MODE=On \
-              -DCMAKE_C_COMPILER=/usr/local/opt/ccache/libexec/clang \
-              -DCMAKE_CXX_COMPILER=/usr/local/opt/ccache/libexec/clang++ \
+              -DCMAKE_C_COMPILER=clang-13 \
+              -DCMAKE_CXX_COMPILER=clang++-13 \
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
           #  /Users/distiller/ccache-clang-wrapper.sh
       - run:
@@ -116,7 +119,7 @@ jobs:
             make -j $(nproc) velocypack
       - run:
           name: CCache Statistics
-          command: ccache -s
+          command: ccache -sv
       - store_artifacts:
           path: build/bin/arango*
       - save_cache:
