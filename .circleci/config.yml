@@ -95,15 +95,17 @@ jobs:
             mkdir -p build
             cd ..
             mkdir -p symlinks/clang
+            mkdir -p symlinks/ccache
             cd symlinks
             ln -s /usr/local/opt/llvm/bin/clang clang/clang-13
             ln -s /usr/local/opt/llvm/bin/clang++ clang/clang++-13
             ln -s /usr/local/opt/ccache/libexec/clang ccache/clang-13
             ln -s /usr/local/opt/ccache/libexec/clang++ ccache/clang++-13
+            echo $PATH
+
           #echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
           #echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
           #chmod u+x ccache-clang-wrapper.sh ccache-clang++-wrapper.sh
-            echo $PATH
       - run:
           name: Configure
           command: >
