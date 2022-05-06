@@ -70,7 +70,7 @@ jobs:
     resource_class: medium
     environment:
       GIT_SSH_COMMAND: ssh -v
-      PATH: /Users/distiller/symlinks
+      PATH: "/Users/distiller/symlinks/ccache:/Users/distiller/symlinks/clang"
     steps:
       - run:
           name: Install required software
@@ -94,13 +94,15 @@ jobs:
           command: |
             mkdir -p build
             cd ..
-            mkdir -p symlinks
+            mkdir -p symlinks/clang
             cd symlinks
-            ln -s /usr/local/opt/ccache/libexec/clang clang-13
-            ln -s /usr/local/opt/ccache/libexec/clang++ clang-13
-            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
-            echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
-            chmod u+x ccache-clang-wrapper.sh ccache-clang++-wrapper.sh
+            ln -s /usr/local/opt/llvm/bin/clang clang/clang-13
+            ln -s /usr/local/opt/llvm/bin/clang++ clang/clang++-13
+            ln -s /usr/local/opt/ccache/libexec/clang ccache/clang-13
+            ln -s /usr/local/opt/ccache/libexec/clang++ ccache/clang++-13
+          #echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang "$@"' > ccache-clang-wrapper.sh
+          #echo -e '#!/bin/bash\nccache /usr/local/opt/llvm/bin/clang++ "$@"' > ccache-clang++-wrapper.sh
+          #chmod u+x ccache-clang-wrapper.sh ccache-clang++-wrapper.sh
             echo $PATH
       - run:
           name: Configure
@@ -109,10 +111,10 @@ jobs:
               -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 \
               -DUSE_SEPARATE_REPLICATION2_TESTS_BINARY=On \
               -DUSE_MAINTAINER_MODE=On \
-              -DCMAKE_C_COMPILER=clang-13 \
-              -DCMAKE_CXX_COMPILER=clang++-13 \
+              -DCMAKE_C_COMPILER= /Users/distiller/symlinks/ccache/clang-13 \
+              -DCMAKE_CXX_COMPILER=/Users/distiller/symlinks/ccache/clang++-13 \
               -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl \
-          #  /Users/distiller/ccache-clang-wrapper.sh
+          # ccache-clang-wrapper.sh
       - run:
           name: Build
           command: |
